@@ -1,0 +1,30 @@
+User.name: string @index(hash) .
+User.password: password .
+User.isLoggedIn: bool .
+User.lastLogin: dateTime .
+User.libraries: [uid] .
+User.playlists: [uid] @reverse .
+
+Library.name: string @index(hash) .
+Library.track: [uid] @count .
+Library.artist: [uid] @count .
+Library.playlist: [uid] @count .
+Library.durationSeconds: int .
+Library.sizeKB: int .
+
+type User {
+    User.name
+    User.password
+    User.isLoggedIn
+    User.lastLogin
+    User.playlists
+}
+
+type Library {
+    Library.name
+    Library.track
+    Library.artist
+    Library.playlist
+    Library.durationSeconds
+    Library.size
+}
