@@ -1,2 +1,9 @@
-/target
+# Runtime data
 /data
+/target
+
+# Local test files
+/testlib
+
+# OS preferences files
+.DS_Store
