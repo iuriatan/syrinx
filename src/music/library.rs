@@ -7,7 +7,6 @@ use crate::dgraph::NodeID;
 use crate::CanariaError;
 use crate::DgraphClient;
 
-const IGNORED_EXT: [&str; 3] = ["jpg", "jpeg", "png"];
 
 #[derive(Clone, Deserialize)]
 pub struct Library {
@@ -34,7 +33,12 @@ pub struct Library {
 impl Library {
     /// Import library -> tracks in database fs returning Library struct with
     /// size and duration accountability
-    pub async fn new(root: String, name: String, db: &DgraphClient) -> Result<Self, CanariaError> {
+    pub async fn new(
+        root: String,
+        name: String,
+        db: &DgraphClient,
+        music_ignore_list: Vec<String>,
+    ) -> Result<Self, CanariaError> {
         let path = PathBuf::from(root.clone()).canonicalize();
         if let Err(err) = path {
             log::error!("{}: {}", root, err);
@@ -57,7 +61,7 @@ impl Library {
                 .map(|x| x.to_str().unwrap_or(""))
                 .unwrap_or("")
                 .to_lowercase();
-            if IGNORED_EXT.contains(&ext.as_str()) {
+            if music_ignore_list.contains(&ext) {
                 continue;
             }
             let metadata = entry_path.metadata()?;

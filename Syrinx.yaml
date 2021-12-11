@@ -13,3 +13,6 @@ drop_all_data: yes
 # grant schema definition before starting ingestion
 set_schema: yes
 dgraph_schema: ./src/schema.dql
+
+# file extensions ignored when ingesting music libraries (case insensitive)
+music_ignore_list: [ jpg, jpeg, png ]

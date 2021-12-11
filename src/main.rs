@@ -13,7 +13,6 @@ type CanariaError = Box<dyn std::error::Error + Send + Sync>;
 #[tokio::main]
 async fn main() -> Result<(), CanariaError> {
     pretty_env_logger::init();
-    
     let settings = load_config();
 
     let db_client = DgraphClient::new(settings.get_str("dgraph_url")?);
@@ -21,17 +20,24 @@ async fn main() -> Result<(), CanariaError> {
         if settings.get_bool("drop_all_data")? {
             db_client.drop_all().await?;
             log::info!("database dropped")
-        } 
+        }
         let schemafile = settings.get_str("dgraph_schema")?;
         db_client.set_schema(Path::new(schemafile.as_str())).await?;
         log::info!("database schema set");
     }
 
+    let mut music_ignore_list = settings.get_array("music_ignore_list").unwrap_or_default();
+    let music_ignore_list: Vec<String> = music_ignore_list
+        .iter_mut()
+        .map(|v| v.clone().into_str().unwrap_or("".into()))
+        .collect();
     music::library::Library::new(
         settings.get_str("music_library_path")?,
         settings.get_str("music_library_name")?,
         &db_client,
-    ).await?;
+        music_ignore_list,
+    )
+    .await?;
 
     Ok(())
 }
