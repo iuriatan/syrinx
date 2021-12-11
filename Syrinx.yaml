@@ -1,6 +1,15 @@
+# Syrinx filesystem entrypoint
 music_library_path: testlib
+
+# a name to identify this library
 music_library_name: testing
+
+# graph database backend access endpoint
 dgraph_url: http://localhost:8080
+
+# clear database before starting ingestion
 drop_all_data: yes
+
+# grant schema definition before starting ingestion
 set_schema: yes
 dgraph_schema: ./src/schema.dql
