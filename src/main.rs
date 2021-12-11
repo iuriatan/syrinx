@@ -3,8 +3,9 @@ use log;
 use pretty_env_logger;
 use std::path::Path;
 
-mod dgraph_client;
-use dgraph_client::DgraphClient;
+mod dgraph;
+mod music;
+use dgraph::DgraphClient;
 
 /// Default error type
 type CanariaError = Box<dyn std::error::Error + Send + Sync>;
@@ -26,7 +27,11 @@ async fn main() -> Result<(), CanariaError> {
         log::info!("database schema set");
     }
 
-    // start fs dive
+    music::library::Library::new(
+        settings.get_str("music_library_path")?,
+        settings.get_str("music_library_name")?,
+        &db_client,
+    ).await?;
 
     Ok(())
 }

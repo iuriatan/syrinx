@@ -6,11 +6,18 @@ User.libraries: [uid] .
 User.playlists: [uid] @reverse .
 
 Library.name: string @index(hash) .
+Library.path: string .
 Library.track: [uid] @count .
 Library.artist: [uid] @count .
 Library.playlist: [uid] @count .
 Library.durationSeconds: int .
-Library.sizeKB: int .
+Library.sizeKilobytes: int .
+
+CreativeWork.title: string @index(term) .
+CreativeWork.artist: string @index(term) .
+CreativeWork.byArtist: [uid] .
+
+MusicRecording.file: string @index(hash) .
 
 type User {
     User.name
@@ -22,9 +29,17 @@ type User {
 
 type Library {
     Library.name
+    Library.path
     Library.track
     Library.artist
     Library.playlist
     Library.durationSeconds
-    Library.size
+    Library.sizeKilobytes
+}
+
+type MusicRecording {
+    CreativeWork.title
+    CreativeWork.artist
+    CreativeWork.byArtist
+    MusicRecording.file
 }

@@ -1,4 +1,4 @@
-music_library_path: ./testdata
+music_library_path: testlib
 music_library_name: testing
 dgraph_url: http://localhost:8080
 drop_all_data: yes
