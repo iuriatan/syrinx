@@ -73,7 +73,7 @@ pub fn extract_metadata(file: &Path) -> Result<Track, CanariaError> {
     let mut hint = symphonia::core::probe::Hint::new();
     hint.with_extension(file_ext);
 
-    match symphonia::default::get_probe().format(
+    let result = match symphonia::default::get_probe().format(
         &hint,
         mss,
         &Default::default(),
@@ -93,7 +93,9 @@ pub fn extract_metadata(file: &Path) -> Result<Track, CanariaError> {
             }
         }
         Err(err) => return Err(format!("metadata extraction fail: {}", err).into()),
-    }
+    }?;
+
+    quality_control(result)
 }
 
 use symphonia::core::meta::MetadataRevision;
@@ -111,4 +113,22 @@ fn extract_tags(md_rev: &MetadataRevision, file: &Path) -> Result<Track, Canaria
         }
     }
     Ok(out)
+}
+
+/// Ensures track meet metadata quality standards
+fn quality_control(track: Track) -> Result<Track, CanariaError> {
+    // fail 
+    if track.artist == UNITIALIZED_STR
+        || track.artist == ""
+        || track.title == UNITIALIZED_STR
+        || track.title == ""
+    {
+        return Err("poor metadata: artist and/or title".into());
+    }
+    
+    if track.track_ref == UNITIALIZED_STR || track.track_ref == "" {
+        log::warn!("uncatalogued track")
+    }
+
+    Ok(track)
 }
