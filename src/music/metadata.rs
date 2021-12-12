@@ -7,21 +7,21 @@ use super::track::Track;
 use crate::CanariaError;
 
 const DEBUG_MUSIC_METADATA: bool = true;
-const UNITIALIZED_STR: &str = "_nihil_";
+const UNINITIALIZED_STR: &str = "_nihil_";
 
 impl Track {
     fn new(filepath: &Path) -> Self {
-        let file_path = filepath.canonicalize().unwrap().into();
+        let file_path = vec![filepath.canonicalize().unwrap().into()];
         let file_size = filepath.metadata().unwrap().len() / 1024;
         Self {
-            title: UNITIALIZED_STR.into(),
-            artist: UNITIALIZED_STR.into(),
+            title: UNINITIALIZED_STR.into(),
+            artist: UNINITIALIZED_STR.into(),
             artist_ref: Vec::new(),
             original_year: None,
             album: None,
             album_ref: None,
             tags: Vec::new(),
-            track_ref: UNITIALIZED_STR.into(),
+            track_ref: UNINITIALIZED_STR.into(),
             duration_seconds: None,
             file_path,
             file_size,
@@ -118,16 +118,20 @@ fn extract_tags(md_rev: &MetadataRevision, file: &Path) -> Result<Track, Canaria
 /// Ensures track meet metadata quality standards
 fn quality_control(track: Track) -> Result<Track, CanariaError> {
     // fail 
-    if track.artist == UNITIALIZED_STR
+    if track.artist == UNINITIALIZED_STR
         || track.artist == ""
-        || track.title == UNITIALIZED_STR
+        || track.title == UNINITIALIZED_STR
         || track.title == ""
     {
         return Err("poor metadata: artist and/or title".into());
     }
     
-    if track.track_ref == UNITIALIZED_STR || track.track_ref == "" {
+    if track.track_ref == UNINITIALIZED_STR || track.track_ref == "" {
         log::warn!("uncatalogued track")
+    }
+    
+    if track.artist_ref.is_empty() {
+        log::warn!("uncatalogued artist")
     }
 
     Ok(track)

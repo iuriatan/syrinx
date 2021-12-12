@@ -3,30 +3,22 @@ use std::path::PathBuf;
 use walkdir::WalkDir;
 
 use super::track::Track;
-use crate::dgraph::NodeID;
 use crate::CanariaError;
 use crate::DgraphClient;
 
 
 #[derive(Clone, Deserialize)]
 pub struct Library {
-    /// Node ID from database backend
-    pub uid: NodeID,
-
     /// Library name (unique in Serinus)
-    #[serde(alias = "Library.name")]
     pub name: String,
 
     /// Library canonical (absolute) name in Serinus filesystem
-    #[serde(alias = "Library.path")]
     pub path: std::path::PathBuf,
-
-    /// Total duration of libraries audio content
-    #[serde(alias = "Library.durationSeconds")]
+    
+    #[serde(default)]
     pub duration_seconds: u32,
-
-    /// Library size dimensions
-    #[serde(alias = "Library.sizeKilobytes")]
+    
+    #[serde(default)]
     pub size_kilobytes: u64,
 }
 
@@ -68,28 +60,14 @@ impl Library {
             if metadata.is_file() {
                 log::info!("importing {}", entry_path.display());
                 match Track::from_file(entry_path) {
-                    Ok(track) => { db.update_track(track, & mut lib).await?; },
+                    Ok(track) => { 
+                        db.update_track(track, & mut lib).await?;
+                    },
                     Err(err) => log::info!("ignoring {}: {}", entry_path.display(), err),
                 }
             }
         }
 
         Ok(lib)
-    }
-
-    /// Return string with rdf triples for database registration
-    pub fn rdf(&self) -> String {
-        return format!(
-            "\
-                _:lib <Library.name> \"{}\" .\n\
-                _:lib <Library.path> \"{}\" .\n\
-                _:lib <Library.durationSeconds> \"{}\" .\n\
-                _:lib <Library.sizeKilobytes> \"{}\" .\n\
-            ",
-            self.name,
-            self.path.display(),
-            self.duration_seconds,
-            self.size_kilobytes,
-        );
     }
 }

@@ -13,11 +13,18 @@ Library.playlist: [uid] @count .
 Library.durationSeconds: int .
 Library.sizeKilobytes: int .
 
+Artist.names: [string] @index(term) .
+Artist.mbid: string @index(hash) .
+
 CreativeWork.title: string @index(term) .
 CreativeWork.artist: string @index(term) .
 CreativeWork.byArtist: [uid] .
+CreativeWork.originalYear: int .
 
-MusicRecording.file: string @index(hash) .
+MusicRecording.file: [string] @index(hash) .
+MusicRecording.mbid: string @index(hash) .
+MusicRecording.durationSeconds: int .
+MusicRecording.sizeKilobytes: int .
 
 type User {
     User.name
@@ -33,13 +40,20 @@ type Library {
     Library.track
     Library.artist
     Library.playlist
-    Library.durationSeconds
-    Library.sizeKilobytes
+}
+
+type Artist {
+    Artist.names
+    Artist.mbid
 }
 
 type MusicRecording {
     CreativeWork.title
     CreativeWork.artist
     CreativeWork.byArtist
+    CreativeWork.originalYear
+    MusicRecording.mbid
     MusicRecording.file
+    MusicRecording.durationSeconds
+    MusicRecording.sizeKilobytes
 }

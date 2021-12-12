@@ -1130,6 +1130,7 @@ dependencies = [
  "log",
  "phf",
  "pretty_env_logger",
+ "regex",
  "reqwest",
  "serde 1.0.130",
  "symphonia",

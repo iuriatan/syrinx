@@ -1,3 +1,4 @@
+use regex::Regex;
 use reqwest::Response;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -6,9 +7,6 @@ use std::path::Path;
 use crate::CanariaError;
 
 mod dal;
-
-pub type NodeID = String; // Hex encoded u64, i.e. "0x4a5b"
-
 
 // MARK: Query result structs
 
@@ -35,6 +33,7 @@ struct ResultError {
 #[derive(Deserialize)]
 struct ResultData<T> {
     /// Results grouped by query name
+    #[serde(default = "HashMap::new")]
     data: HashMap<String, Vec<T>>,
  
     #[serde(default = "Vec::new")]
@@ -93,14 +92,14 @@ impl DgraphClient {
     }
 
     /// Executes a mutation resulting only success or error
-    pub async fn mutate(&self, rdf: &str) -> Result<(), CanariaError> {
+    pub async fn mutate(&self, dql: &str) -> Result<(), CanariaError> {
         let client = reqwest::Client::new();
         let url = format!("{}{}", self.base_url, "/mutate?commitNow=true");
-        log::debug!("DQL Mutation: \n{}", format!("{{ set {{ {} }} }}", rdf));
+        log::debug!("DQL Mutation: \n{}", dql);
         let res: Result<Response, CanariaError> = client
             .post(url.as_str())
             .header(reqwest::header::CONTENT_TYPE, "application/rdf")
-            .body(format!("{{ set {{ {} }} }}", rdf))
+            .body(dql.to_owned())
             .send()
             .await
             .map_err(|e| e.into());
@@ -109,41 +108,87 @@ impl DgraphClient {
         Ok(())
     }
 
-    /// Read-only query returning an array of values
-    pub async fn query<T>(&self, dql: &str) -> Result<Vec<T>, CanariaError> 
-    where T: for<'de> Deserialize<'de> + Clone {
+    /// Read-only query returning an "raw" database response
+    async fn query(&self, dql: String) -> Result<Response, CanariaError> {
         if dql.is_empty() {
             return Err("empty query string".into());
         }
 
-        let q_name = dql.split("(").next();
-        if let None = q_name {
-            return Err("could not get query name".into());
-        }
-        let q_name = q_name.unwrap().trim();
-
         let client = reqwest::Client::new();
         let url = format!("{}{}", self.base_url, "/query");
-        log::debug!("DQL Query:\n{}", format!("{{ {} }}", dql));
-        let res: Result<Response, CanariaError> = client
+        log::debug!("DQL Query:\n{}", dql);
+        client
             .post(url.as_str())
             .header(reqwest::header::CONTENT_TYPE, "application/dql")
-            .body(format!("{{ {} }}", dql))
+            .body(dql)
             .send()
             .await
-            .map_err(|e| e.into());
-        let r_data = res?.json::<ResultData<T>>().await?;
-        let result = r_data.data.get(q_name).ok_or("no data matching query name")?;
-        Ok(result.to_vec())
+            .map_err(|e| e.into())
     }
     
     /// Read-only query returning a single element
     pub async fn query_single<T>(&self, dql: &str) -> Result<Option<T>, CanariaError>
     where T: for<'de> Deserialize<'de> + Clone {
-        let mut results = self.query(dql).await?;
-        if results.is_empty() {
+        let q_names = extract_query_names(dql);
+        if q_names.len() != 1 {
+            return match q_names.len() {
+                0 => Err("could not extract query names from DQL".into()),
+                _ => Err("multiple query not supported".into())
+            }
+        }
+
+        let db_result = self.query(dql.into()).await?;
+        let mut results: ResultData<T> = db_result.json().await?;
+        let mut result = results.data.remove(&q_names[0]).unwrap();
+        if result.is_empty() {
             return Ok(None)
         }
-        Ok(results.swap_remove(0))
+        Ok(Some(result.swap_remove(0)))
     }
+}
+
+pub trait RDFable {
+    fn nqd<S: std::fmt::Display>(&self, subject: S, predicate: S) -> String;
+}
+
+impl<T> RDFable for Option<T> where T: std::fmt::Display {
+    fn nqd<S: std::fmt::Display>(&self, subject: S, predicate: S) -> String {
+        match self {
+            Some(object) => format!("{} {} \"{}\" .\n", subject, predicate, object),
+            None => "".into()
+        }
+    }
+}
+
+// This shall be unified with `impl for Vec<PathBuf> for a generic type when PathBuf
+// implements Display or Into<String>
+impl RDFable for Vec<String> {
+    fn nqd<S: std::fmt::Display>(&self, subject: S, predicate: S) -> String {
+        let mut out: String = "".into();
+        for object in self {
+            out = format!("{}{} {} \"{}\" .\n", out, subject, predicate, object)
+        }
+        out
+    }
+}
+
+impl RDFable for Vec<std::path::PathBuf> {
+    fn nqd<S: std::fmt::Display>(&self, subject: S, predicate: S) -> String {
+        let mut out: String = "".into();
+        for object in self {
+            out = format!("{}{} {} \"{}\" .\n", out, subject, predicate, object.display())
+        }
+        out
+    }
+}
+
+/// Inform query name used in DQL query. Typically used for result extraction
+fn extract_query_names(dql: &str) -> Vec<String> {
+    let regex = Regex::new(r#"\s*(\w+)\s*\(.*\)\s*\{"#).expect("bogus regexp");
+    let mut out: Vec<String> = Vec::new();
+    for block in regex.captures_iter(dql) {
+        if &block[1] == "var" { continue }
+        out.insert(out.len(), block[1].into());
+    }
+    out
 }
