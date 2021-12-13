@@ -1,3 +1,4 @@
+use fastrand;
 use log::{debug, warn};
 use phf::phf_map;
 use std::path::Path;
@@ -126,8 +127,13 @@ fn quality_control(track: Track) -> Result<Track, CanariaError> {
         return Err("poor metadata: artist and/or title".into());
     }
     
+    let mut track = track;
     if track.track_ref == UNINITIALIZED_STR || track.track_ref == "" {
-        log::warn!("uncatalogued track")
+        log::warn!("uncatalogued track");
+        track.track_ref = format!(
+            "TEMPORARY:{}",
+            std::iter::repeat_with(fastrand::alphanumeric).take(25).collect::<String>()
+        )
     }
     
     if track.artist_ref.is_empty() {
