@@ -19,12 +19,16 @@ Artist.mbid: string @index(hash) .
 CreativeWork.title: string @index(term) .
 CreativeWork.artist: string @index(term) .
 CreativeWork.byArtist: [uid] .
-CreativeWork.originalYear: int .
+CreativeWork.originalYear: int @index(int) .
 
 MusicRecording.file: [string] @index(hash) .
 MusicRecording.mbid: string @index(hash) .
 MusicRecording.durationSeconds: int .
 MusicRecording.sizeKilobytes: int .
+MusicRecording.inAlbum: uid .
+
+MusicAlbum.mbid: string @index(hash) .
+MusicAlbum.track: uid .
 
 type User {
     User.name
@@ -47,6 +51,14 @@ type Artist {
     Artist.mbid
 }
 
+type Album {
+    CreativeWork.title
+    CreativeWork.artist
+    CreativeWork.byArtist
+    CreativeWork.originalYear
+    MusicAlbum.mbid
+}
+
 type MusicRecording {
     CreativeWork.title
     CreativeWork.artist
@@ -56,4 +68,5 @@ type MusicRecording {
     MusicRecording.file
     MusicRecording.durationSeconds
     MusicRecording.sizeKilobytes
+    MusicRecording.inAlbum
 }

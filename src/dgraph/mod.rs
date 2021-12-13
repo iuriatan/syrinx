@@ -154,7 +154,7 @@ pub trait RDFable {
 impl<T> RDFable for Option<T> where T: std::fmt::Display {
     fn nqd<S: std::fmt::Display>(&self, subject: S, predicate: S) -> String {
         match self {
-            Some(object) => format!("{} {} \"{}\" .\n", subject, predicate, object),
+            Some(object) => format!("{} {} \"{}\" .\n", subject, predicate, escape_chars(format!("{}", object))),
             None => "".into()
         }
     }
@@ -166,7 +166,7 @@ impl RDFable for Vec<String> {
     fn nqd<S: std::fmt::Display>(&self, subject: S, predicate: S) -> String {
         let mut out: String = "".into();
         for object in self {
-            out = format!("{}{} {} \"{}\" .\n", out, subject, predicate, object)
+            out = format!("{}{} {} \"{}\" .\n", out, subject, predicate, escape_chars(object.into()))
         }
         out
     }
@@ -191,4 +191,8 @@ fn extract_query_names(dql: &str) -> Vec<String> {
         out.insert(out.len(), block[1].into());
     }
     out
+}
+
+fn escape_chars(value: String) -> String {
+    value.replace("\"", r#"\""#)
 }
