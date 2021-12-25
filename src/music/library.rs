@@ -60,8 +60,8 @@ impl Library {
             if metadata.is_file() {
                 log::info!("importing {}", entry_path.display());
                 match Track::from_file(entry_path) {
-                    Ok(track) => { 
-                        db.update_track(track, & mut lib).await?;
+                    Ok(track) => if let Err(err) = db.update_track(track, & mut lib).await {
+                        log::error!("{}", err);
                     },
                     Err(err) => log::info!("ignoring {}: {}", entry_path.display(), err),
                 }
