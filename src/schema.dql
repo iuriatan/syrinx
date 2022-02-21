@@ -1,5 +1,6 @@
 User.name: string @index(hash) .
 User.password: password .
+User.role: [string] @index(hash) .
 User.isLoggedIn: bool .
 User.lastLogin: dateTime .
 User.libraries: [uid] .
