@@ -13,7 +13,6 @@ impl DgraphClient {
     pub async fn get_library(&self, name: String, path: PathBuf) -> Result<Library, CanariaError> {
         let upsert_lib = format!(
             "upsert {{\
-            banana!
                 query {{\
                     q(func: eq(<Library.name>, \"{}\")){{\
                         lib as uid\
