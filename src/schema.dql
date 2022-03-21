@@ -1,6 +1,7 @@
 User.name: string @index(hash) .
 User.password: password .
-User.role: [string] @index(hash) .
+User.email: string @index(hash) .
+User.roles: [string] @index(hash) .
 User.isLoggedIn: bool .
 User.lastLogin: dateTime .
 User.libraries: [uid] .
@@ -33,7 +34,9 @@ MusicAlbum.track: uid .
 
 type User {
     User.name
+    User.email
     User.password
+    User.roles
     User.isLoggedIn
     User.lastLogin
     User.playlists
