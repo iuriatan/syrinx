@@ -2,6 +2,7 @@ User.name: string @index(hash) .
 User.password: password .
 User.email: string @index(hash) .
 User.roles: [string] @index(hash) .
+User.invitation: string @index(hash) .
 User.isLoggedIn: bool .
 User.lastLogin: dateTime .
 User.libraries: [uid] .
@@ -40,6 +41,7 @@ type User {
     User.isLoggedIn
     User.lastLogin
     User.playlists
+    User.invitation
 }
 
 type Library {
