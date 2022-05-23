@@ -5,7 +5,7 @@ User.roles: [string] @index(hash) .
 User.invitation: string @index(hash) .
 User.isLoggedIn: bool .
 User.lastLogin: dateTime .
-User.libraries: [uid] .
+User.libs: [uid] .
 User.playlists: [uid] @reverse .
 
 Library.name: string @index(hash) .
@@ -42,6 +42,7 @@ type User {
     User.lastLogin
     User.playlists
     User.invitation
+    User.libs
 }
 
 type Library {
