@@ -38,7 +38,7 @@ pub struct Track {
     pub duration_seconds: Option<u32>,
     
     /// There may be multiple files for a same recording
-    pub file_path: Vec<PathBuf>,
+    pub file_path: PathBuf,
     
     /// File size in bytes
     pub file_size: u64,

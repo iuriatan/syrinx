@@ -72,6 +72,7 @@ impl DgraphClient {
                     l as var(func: eq(Library.name, \"{lib}\"))\n\
                     {ar_vars}\
                     al as var(func: eq(Album.mbid, \"{al_ref}\"))\n\
+                    au as var(func: eq(AudioObject.filepath, \"{au_ref}\"))
                     t as var(func: eq(MusicRecording.mbid, \"{t_ref}\"))\n\
                 }}\n\
                 mutation {{\
@@ -86,10 +87,12 @@ impl DgraphClient {
                         uid(t) <CreativeWork.title> \"{t_title}\" .\n\
                         uid(t) <CreativeWork.artist> \"{t_ar}\" .\n\
                         uid(t) <MusicRecording.inAlbum> uid(al) .\n\
-                        uid(t) <MusicRecording.sizeKilobytes> \"{t_size}\" .\n\
-                        {t_year_nqd}\
+                        uid(t) <MusicRecording.audio> uid(au) .\n\
                         {t_dur_nqd}\
-                        {t_file_nqd}\
+                        {t_year_nqd}\
+                        uid(au) <dgraph.type> \"AudioObject\" . \n\
+                        uid(au) <AudioObject.sizeKilobytes> \"{t_size}\" .\n\
+                        uid(au) <AudioObject.filepath> \"{au_ref}\" .\n\
                     }}\
                 }}\
             }}",
@@ -98,6 +101,7 @@ impl DgraphClient {
             ar_muts_nqd = track.artists_muts("uid(l)", "uid(t)"),
             al_ref = track.album_ref.unwrap_or("".into()),
             al_title_nqd = track.album.nqd("uid(al)", "<CreativeWork.title>"),
+            au_ref = track.file_path.to_string_lossy(),
             t_ref = track.track_ref,
             t_title = track.title,
             t_ar = track.artist,
@@ -108,21 +112,22 @@ impl DgraphClient {
                 .duration_seconds
                 .nqd("uid(t)", "<MusicRecording.durationSeconds>"),
             t_size = track.file_size,
-            t_file_nqd = track.file_path.nqd("uid(t)", "<MusicRecording.file>"),
         );
         self.mutate(dql.as_str()).await?;
 
         let result = self
             .query_single(format!(
                 "{{\
-                    q(func: eq(<MusicRecording.mbid>, \"{}\")) {{\n\
+                    q(func: eq(<MusicRecording.mbid>, \"{}\")) @normalize {{\n\
                         title: CreativeWork.title\n\
                         artist: CreativeWork.artist\n\
                         artist_ref: Artist.mbid\n\
                         original_year: CreativeWork.originalYear\n\
                         track_ref: MusicRecording.mbid\n\
-                        file_path: MusicRecording.file\n\
-                        file_size: MusicRecording.sizeKilobytes\n\
+                        <MusicRecording.audio> {{\n\
+                            file_path: AudioObject.filepath\n\
+                            file_size: AudioObject.sizeKilobytes\n\
+                        }}\
                     }}\
                 }}",
                 track.track_ref,

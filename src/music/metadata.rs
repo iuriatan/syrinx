@@ -12,7 +12,7 @@ const UNINITIALIZED_STR: &str = "_nihil_";
 
 impl Track {
     fn new(filepath: &Path) -> Self {
-        let file_path = vec![filepath.canonicalize().unwrap().into()];
+        let file_path = filepath.canonicalize().unwrap().into();
         let file_size = filepath.metadata().unwrap().len() / 1024;
         Self {
             title: UNINITIALIZED_STR.into(),

@@ -1,56 +1,61 @@
-User.name: string @index(hash) .
-User.password: password .
 User.email: string @index(hash) .
-User.roles: [string] @index(hash) .
 User.invitation: string @index(hash) .
 User.isLoggedIn: bool .
 User.lastLogin: dateTime .
 User.libs: [uid] .
+User.name: string @index(hash) .
+User.password: password .
 User.playlists: [uid] @reverse .
+User.roles: [string] @index(hash) .
 
+Library.artist: [uid] @count .
+Library.durationSeconds: int .
 Library.name: string @index(hash) .
 Library.path: string .
-Library.track: [uid] @count .
-Library.artist: [uid] @count .
 Library.playlist: [uid] @count .
-Library.durationSeconds: int .
 Library.sizeKilobytes: int .
+Library.track: [uid] @count .
 
 Artist.names: [string] @index(term) .
 Artist.mbid: string @index(hash) .
 
-CreativeWork.title: string @index(term) .
 CreativeWork.artist: string @index(term) .
 CreativeWork.byArtist: [uid] .
 CreativeWork.originalYear: int @index(int) .
+CreativeWork.title: string @index(term) .
 
-MusicRecording.file: [string] @index(hash) .
-MusicRecording.mbid: string @index(hash) .
+MusicRecording.audio: [uid] .
 MusicRecording.durationSeconds: int .
-MusicRecording.sizeKilobytes: int .
 MusicRecording.inAlbum: uid .
+MusicRecording.mbid: string @index(hash) .
+MusicRecording.sizeKilobytes: int .
+
+AudioObject.durationSeconds: int .
+AudioObject.encodingFormat: string .
+AudioObject.filepath: string @index(hash) .
+AudioObject.sizeKilobytes: int .
 
 MusicAlbum.mbid: string @index(hash) .
 MusicAlbum.track: uid .
 
 type User {
-    User.name
     User.email
-    User.password
-    User.roles
+    User.invitation
     User.isLoggedIn
     User.lastLogin
-    User.playlists
-    User.invitation
     User.libs
+    User.name
+    User.password
+    User.playlists
+    User.roles
 }
 
 type Library {
+    Library.artist
     Library.name
     Library.path
-    Library.track
-    Library.artist
     Library.playlist
+    Library.track
 }
 
 type Artist {
@@ -59,21 +64,27 @@ type Artist {
 }
 
 type Album {
-    CreativeWork.title
     CreativeWork.artist
     CreativeWork.byArtist
     CreativeWork.originalYear
+    CreativeWork.title
     MusicAlbum.mbid
 }
 
 type MusicRecording {
-    CreativeWork.title
     CreativeWork.artist
     CreativeWork.byArtist
     CreativeWork.originalYear
-    MusicRecording.mbid
-    MusicRecording.file
+    CreativeWork.title
+    MusicRecording.audio
     MusicRecording.durationSeconds
-    MusicRecording.sizeKilobytes
     MusicRecording.inAlbum
+    MusicRecording.mbid
+}
+
+type AudioObject {
+    AudioObject.durationSeconds
+    AudioObject.encodingFormat
+    AudioObject.filepath
+    AudioObject.sizeKilobytes
 }

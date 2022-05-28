@@ -131,6 +131,7 @@ impl DgraphClient {
     where T: for<'de> Deserialize<'de> + Clone {
         let q_names = extract_query_names(dql);
         if q_names.len() != 1 {
+            log::debug!("DQL Query:\n{}", dql);
             return match q_names.len() {
                 0 => Err("could not extract query names from DQL".into()),
                 _ => Err("multiple query not supported".into())
@@ -184,7 +185,7 @@ impl RDFable for Vec<std::path::PathBuf> {
 
 /// Inform query name used in DQL query. Typically used for result extraction
 fn extract_query_names(dql: &str) -> Vec<String> {
-    let regex = Regex::new(r#"\s*(\w+)\s*\(.*\)\s*\{"#).expect("bogus regexp");
+    let regex = Regex::new(r#"\s*(\w+)\s*\(.*\)[@\s\w]*\{"#).expect("bogus regexp");
     let mut out: Vec<String> = Vec::new();
     for block in regex.captures_iter(dql) {
         if &block[1] == "var" { continue }
