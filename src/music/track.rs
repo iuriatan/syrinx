@@ -37,11 +37,16 @@ pub struct Track {
     /// Playback duration in seconds
     pub duration_seconds: Option<u32>,
     
-    /// There may be multiple files for a same recording
-    pub file_path: PathBuf,
-    
     /// File size in bytes
+    pub file_path: PathBuf,
     pub file_size: u64,
+    pub mime_type: String,
+    pub extension: String,
+    
+    /// Track picture
+    pub picture_mime_type: Option<String>,
+    /// base64 encoded picture data
+    pub picture: Option<String>,
 }
 
 impl Track {

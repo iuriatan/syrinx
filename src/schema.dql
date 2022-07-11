@@ -32,8 +32,11 @@ MusicRecording.sizeKilobytes: int .
 
 AudioObject.durationSeconds: int .
 AudioObject.encodingFormat: string .
+AudioObject.extension: string .
 AudioObject.filepath: string @index(hash) .
 AudioObject.sizeKilobytes: int .
+AudioObject.picture: string .
+AudioObject.pictureMimeType: string .
 
 MusicAlbum.mbid: string @index(hash) .
 MusicAlbum.track: uid .

@@ -93,6 +93,10 @@ impl DgraphClient {
                         uid(au) <dgraph.type> \"AudioObject\" . \n\
                         uid(au) <AudioObject.sizeKilobytes> \"{t_size}\" .\n\
                         uid(au) <AudioObject.filepath> \"{au_ref}\" .\n\
+                        uid(au) <AudioObject.extension> \"{au_ext}\" .\n\
+                        uid(au) <AudioObject.encodingFormat> \"{au_enc}\" .\n\
+                        {au_pic_nqd}\
+                        {au_picmime_nqd}\
                     }}\
                 }}\
             }}",
@@ -102,6 +106,10 @@ impl DgraphClient {
             al_ref = track.album_ref.unwrap_or("".into()),
             al_title_nqd = track.album.nqd("uid(al)", "<CreativeWork.title>"),
             au_ref = track.file_path.to_string_lossy(),
+            au_ext = track.extension,
+            au_enc = track.mime_type,
+            au_pic_nqd = track.picture.nqd("uid(au)", "<AudioObject.picture>"),
+            au_picmime_nqd = track.picture_mime_type.nqd("uid(au)", "<AudioObject.pictureMimeType>"),
             t_ref = track.track_ref,
             t_title = track.title,
             t_ar = track.artist,
@@ -125,8 +133,12 @@ impl DgraphClient {
                         original_year: CreativeWork.originalYear\n\
                         track_ref: MusicRecording.mbid\n\
                         <MusicRecording.audio> {{\n\
+                            extension: AudioObject.extension\n\
                             file_path: AudioObject.filepath\n\
                             file_size: AudioObject.sizeKilobytes\n\
+                            mime_type: AudioObject.encodingFormat\n\
+                            picture: AudioObject.picture\n\
+                            picture_mime_type: AudioObject.pictureMimeType\n\
                         }}\
                     }}\
                 }}",
